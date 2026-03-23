@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+}
+
+/* Custom Cropper Styles */
+.cropper-view-box,
+.cropper-face {
+  border-radius: 0;
+}
+
+.cropper-line, .cropper-point {
+  background-color: #4f46e5; /* indigo-600 */
+}
+
+.cropper-point.point-se {
+  width: 12px;
+  height: 12px;
+  opacity: 1;
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+@keyframes bounce-subtle {
+  0%, 100% { transform: translateY(-5%); }
+  50% { transform: translateY(0); }
+}
+
+.animate-bounce-subtle {
+  animation: bounce-subtle 3s ease-in-out infinite;
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-in {
+  animation: fade-in-up 0.5s ease-out forwards;
+}
