@@ -39,6 +39,15 @@ The codebase is structured for scalability and separation of concerns.
    - Main application container.
    - Implements a modern "SaaS-style" dashboard UI.
    - Responsive layout with "Live Preview" and deployment-ready states.
+   - NEW: Configurable Target Resolution up to 5000px.
+   - NEW: Intelligent Quality/Compression engine targeting user-defined file sizes.
+   - NEW: Output format selection (JPEG with compression or Lossless PNG).
+
+Testing:
+--------
+- Framework: Vitest + React Testing Library.
+- Command: 'npm run test' to run all unit and integration tests.
+- Setup: jsdom environment with custom DOM matchers.
 
 Deployment & Production:
 ------------------------

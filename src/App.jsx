@@ -7,8 +7,11 @@ import { Upload, Download, ImageIcon, Settings2, Sparkles, Image as ImageIconLuc
 function App() {
   const { image, handleImageChange, resetImage, isUploading, error } = useImageUpload();
   const [cropData, setCropData] = useState(null);
-  const [resolution, setResolution] = useState(1080);
+  const [resolution, setResolution] = useState(1000);
+  const [targetFileSize, setTargetFileSize] = useState(100);
+  const [format, setFormat] = useState("image/jpeg");
   const [isDragging, setIsDragging] = useState(false);
+  const [compressionNote, setCompressionNote] = useState("");
   const cropperRef = useRef(null);
 
   const handleDragOver = (e) => {
@@ -27,11 +30,43 @@ function App() {
     handleImageChange(e);
   };
 
-  const handleCropComplete = (data) => {
-    setCropData(data);
+  const calculateOptimizedData = (canvas) => {
+    if (format === "image/png") {
+      const dataUrl = canvas.toDataURL("image/png");
+      const sizeInKB = (dataUrl.length * 0.75) / 1024;
+      return { dataUrl, sizeInKB, quality: 1 };
+    }
+
+    let quality = 0.95;
+    let dataUrl = "";
+    let sizeInKB = 0;
+
+    // If targetFileSize is very large, just return high quality
+    if (targetFileSize >= 5000) {
+      dataUrl = canvas.toDataURL("image/jpeg", 0.95);
+      sizeInKB = (dataUrl.length * 0.75) / 1024;
+      return { dataUrl, sizeInKB, quality: 0.95 };
+    }
+
+    // Compression Loop to target specific size
+    do {
+      dataUrl = canvas.toDataURL("image/jpeg", quality);
+      sizeInKB = (dataUrl.length * 0.75) / 1024;
+      
+      if (sizeInKB > targetFileSize && quality > 0.1) {
+        quality -= 0.05;
+      } else {
+        break;
+      }
+    } while (quality > 0.1);
+
+    return { dataUrl, sizeInKB, quality };
   };
 
-  const handleDownload = () => {
+  const handleCropComplete = (previewDataUrl) => {
+    setCropData(previewDataUrl);
+    
+    // Immediately calculate optimized size for the current resolution
     if (cropperRef.current) {
       const canvas = cropperRef.current.getCroppedCanvas({
         width: resolution,
@@ -39,7 +74,24 @@ function App() {
       });
       
       if (canvas) {
-        downloadDataURL(canvas.toDataURL("image/png"), `onebyone-${resolution}x${resolution}.png`);
+        const { sizeInKB, quality } = calculateOptimizedData(canvas);
+        const status = format === "image/png" ? "" : (quality <= 0.3 ? " (Low Quality)" : quality <= 0.6 ? " (Medium Quality)" : "");
+        setCompressionNote(`Estimated Size: ${Math.round(sizeInKB)}KB${status}`);
+      }
+    }
+  };
+
+  const handleDownload = async () => {
+    if (cropperRef.current) {
+      const canvas = cropperRef.current.getCroppedCanvas({
+        width: resolution,
+        height: resolution
+      });
+      
+      if (canvas) {
+        const { dataUrl } = calculateOptimizedData(canvas);
+        const ext = format === "image/png" ? "png" : "jpg";
+        downloadDataURL(dataUrl, `onebyone-${resolution}x${resolution}.${ext}`);
       }
     }
   };
@@ -196,6 +248,62 @@ function App() {
                         ))}
                       </div>
                     </div>
+
+                    <div className="pt-2">
+                      <label htmlFor="targetSize" className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
+                        Target Size Limit (KB)
+                      </label>
+                      <div className="relative">
+                        <input
+                          id="targetSize"
+                          type="number"
+                          value={targetFileSize}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value);
+                            setTargetFileSize(isNaN(val) ? "" : Math.min(5000, Math.max(10, val)));
+                          }}
+                          onBlur={() => {
+                            if (!targetFileSize || targetFileSize < 10) setTargetFileSize(10);
+                          }}
+                          className="w-full bg-white border border-slate-200 rounded-xl pl-4 pr-12 py-3 text-lg font-extrabold text-slate-900 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        />
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
+                          <div className="w-px h-4 bg-slate-200"></div>
+                          <span className="text-slate-300 font-black text-[10px] tracking-tighter uppercase">
+                            KB
+                          </span>
+                        </div>
+                      </div>
+                      <p className="mt-2 text-[9px] text-slate-400 font-medium">Higher = Better Quality. Max 5000KB.</p>
+                    </div>
+
+                    <div className="pt-2">
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
+                        Output Format
+                      </label>
+                      <div className="flex bg-white border border-slate-200 rounded-xl p-1">
+                        <button
+                          onClick={() => setFormat("image/jpeg")}
+                          className={`flex-1 py-2 rounded-lg text-[10px] font-black transition-all ${
+                            format === "image/jpeg"
+                              ? "bg-slate-900 text-white shadow-md"
+                              : "text-slate-400 hover:text-slate-600"
+                          }`}
+                        >
+                          JPEG
+                        </button>
+                        <button
+                          onClick={() => setFormat("image/png")}
+                          className={`flex-1 py-2 rounded-lg text-[10px] font-black transition-all ${
+                            format === "image/png"
+                              ? "bg-slate-900 text-white shadow-md"
+                              : "text-slate-400 hover:text-slate-600"
+                          }`}
+                        >
+                          PNG (Lossless)
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </section>
 
@@ -221,8 +329,16 @@ function App() {
                             {resolution}²
                           </div>
                         </div>
+                        {compressionNote && (
+                          <div className="mb-4 p-3 bg-indigo-50 border border-indigo-100 rounded-xl text-center">
+                            <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest leading-none">
+                              {compressionNote}
+                            </p>
+                          </div>
+                        )}
                         <button
                           onClick={handleDownload}
+
                           disabled={!resolution || resolution < 100}
                           className="w-full bg-indigo-600 text-white px-6 py-4 rounded-xl font-black flex items-center justify-center gap-3 hover:bg-indigo-700 transition-all active:scale-95 shadow-lg shadow-indigo-100 disabled:opacity-50"
                         >
