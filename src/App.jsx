@@ -129,10 +129,17 @@ function App() {
       )}
 
       <header className="w-full max-w-7xl mb-8 md:mb-12 flex items-center justify-between px-2">
-        <div className="flex items-center gap-3">
-          <div className="bg-indigo-600 w-10 h-10 rounded-xl flex items-center justify-center shadow-indigo-200 shadow-xl flex-shrink-0">
-            <ImageIconLucide className="text-white w-6 h-6" strokeWidth={2.5} />
-          </div>
+            <a 
+              href="https://caveman-store.com" 
+              className="md:hidden flex items-center justify-center p-2 rounded-xl border border-slate-100 bg-white shadow-sm"
+              aria-label="Back to Main Site"
+            >
+              <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
+            </a>
+            <div className="flex items-center gap-3">
+              <div className="bg-indigo-600 w-10 h-10 rounded-xl flex items-center justify-center shadow-indigo-200 shadow-xl flex-shrink-0">
+                <ImageIconLucide className="text-white w-6 h-6" strokeWidth={2.5} />
+              </div>
           <div>
             <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight leading-none uppercase">One By One</h1>
             <div className="flex items-center gap-1.5 mt-1">
@@ -142,9 +149,17 @@ function App() {
           </div>
         </div>
         
-        <div className="hidden md:flex items-center gap-2">
-          <div className="bg-white/50 border border-slate-100 px-4 py-2 rounded-full backdrop-blur-sm">
-            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Fast • Secure • 1:1 Precise</p>
+        <div className="flex items-center gap-4">
+          <a 
+            href="https://caveman-store.com" 
+            className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full border border-slate-200 text-slate-500 hover:text-slate-900 hover:border-slate-400 transition-all text-xs font-bold"
+          >
+            Back to Main Site
+          </a>
+          <div className="hidden md:flex items-center gap-2">
+            <div className="bg-white/50 border border-slate-100 px-4 py-2 rounded-full backdrop-blur-sm">
+              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Fast • Secure • 1:1 Precise</p>
+            </div>
           </div>
         </div>
       </header>
